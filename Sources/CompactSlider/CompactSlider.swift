@@ -65,6 +65,7 @@ import SwiftUI
 /// ```
 public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View {
     
+    @Binding var maxX: CGFloat
     @Environment(\.isEnabled) var isEnabled
     @Environment(\.compactSliderStyle) var compactSliderStyle
     @Environment(\.compactSliderDisabledHapticFeedback) var disabledHapticFeedback
@@ -77,6 +78,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
     let direction: CompactSliderDirection
     let handleVisibility: HandleVisibility
     let scaleVisibility: ScaleVisibility
+    @State var height: CGFloat
     let minHeight: CGFloat
     let enableDragGestureDelayForiOS: Bool
     @Binding var state: CompactSliderState
@@ -113,6 +115,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
     public init(
         value: Binding<Value>,
         in bounds: ClosedRange<Value> = 0...1,
+        maxX maxX: Binding<CGFloat> = .constant(1.0),
         step: Value = 0,
         direction: CompactSliderDirection = .leading,
         handleVisibility: HandleVisibility = .standard,
@@ -122,6 +125,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
         state: Binding<CompactSliderState> = .constant(.inactive),
         @ViewBuilder valueLabel: () -> ValueLabel
     ) {
+        _maxX = maxX
         _lowerValue = value
         _upperValue = .constant(0)
         isRangeValues = false
@@ -130,6 +134,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
         self.direction = direction
         self.handleVisibility = handleVisibility
         self.scaleVisibility = scaleVisibility
+        self._height = State(initialValue: minHeight)
         self.minHeight = minHeight
         self.enableDragGestureDelayForiOS = enableDragGestureDelayForiOS
         _state = state
@@ -167,6 +172,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
         from lowerValue: Binding<Value>,
         to upperValue: Binding<Value>,
         in bounds: ClosedRange<Value> = 0...1,
+        maxX: Binding<CGFloat> = .constant(1.0),
         step: Value = 0,
         handleVisibility: HandleVisibility = .standard,
         scaleVisibility: ScaleVisibility = .hovering,
@@ -178,11 +184,13 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
         _lowerValue = lowerValue
         _upperValue = upperValue
         isRangeValues = true
+        _maxX = maxX
         self.bounds = bounds
         self.step = step
         direction = .leading
         self.handleVisibility = handleVisibility
         self.scaleVisibility = scaleVisibility
+        self._height = State(initialValue: minHeight)
         self.minHeight = minHeight
         self.enableDragGestureDelayForiOS = enableDragGestureDelayForiOS
         _state = state
@@ -222,13 +230,22 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
             .dragGesture(
                 enableDragGestureDelayForiOS: enableDragGestureDelayForiOS,
                 onChanged: {
+                    withAnimation {
+                        self.height = self.minHeight * 1.4
+                    }
                     isDragging = true
+                   
                     updateState()
                     dragLocationX = $0.location.x
                 }, onEnded: {
+                    withAnimation {
+                        self.height = self.minHeight
+                    }
+                   
                     isDragging = false
                     updateState()
                     dragLocationX = $0.location.x
+                    
                 }
             )
             .onChange(of: lowerProgress, perform: onLowerProgressChange)
@@ -271,7 +288,7 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
                 .padding(.horizontal, .labelPadding)
         }
         .opacity(isEnabled ? 1 : 0.5)
-        .frame(minHeight: minHeight)
+        .frame(minHeight: height)
         .fixedSize(horizontal: false, vertical: true)
     }
     
@@ -327,8 +344,11 @@ private extension CompactSlider {
     
     func onDragLocationXChange(_ newValue: CGFloat, size: CGSize) {
         guard !bounds.isEmpty else { return }
+//        guard newValue < maxX else { return }
         
         let newProgress = max(0, min(1, newValue / size.width))
+        guard newProgress <= self.maxX else { return }
+
         let isProgress2Nearest: Bool
         
         // Check which progress is closest and should be in focus.

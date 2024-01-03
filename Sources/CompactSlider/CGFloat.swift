@@ -12,7 +12,7 @@ extension CGFloat {
         #if os(macOS)
         24
         #else
-        44
+        22
         #endif
     }()
     
