@@ -9,7 +9,7 @@ struct HandleView: View {
     
     @Environment(\.compactSliderSecondaryAppearance) var secondaryAppearance
     
-    let width: CGFloat
+    @State var width: CGFloat
     let offsetX: CGFloat
     let isFocused: Bool
     
@@ -18,6 +18,22 @@ struct HandleView: View {
             .fill(isFocused ? Color.accentColor : secondaryAppearance.handleColor)
             .frame(width: width)
             .offset(x: offsetX)
+//            .gesture(
+//                  
+//                
+////                LongPressGesture(minimumDuration: 0.5)
+////                    .onChanged({ changed in
+////                        withAnimation {
+////                                            self.width  = self.width * 2
+////                                        }
+////                    })
+////                    .onEnded( { changed in
+////                        withAnimation {
+////                            self.width  = self.width * 0.5
+////                                        }
+////                    })
+//            )
+
     }
 }
 

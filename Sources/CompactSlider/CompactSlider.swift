@@ -224,6 +224,8 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
             #if os(macOS) || os(iOS)
             .onHover {
                 isHovering = isEnabled && $0
+                
+                
                 updateState()
             }
             #endif
