@@ -17,7 +17,9 @@ struct HandleView: View {
         Rectangle()
             .fill(isFocused ? Color.accentColor : secondaryAppearance.handleColor)
             .frame(width: width)
+     
             .offset(x: offsetX)
+          
 //            .gesture(
 //                  
 //                

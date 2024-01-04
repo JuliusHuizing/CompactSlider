@@ -65,6 +65,7 @@ import SwiftUI
 /// ```
 public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View {
     
+    var afterSlide: (() -> Void)? = nil
     @Binding var maxX: CGFloat
     @Environment(\.isEnabled) var isEnabled
     @Environment(\.compactSliderStyle) var compactSliderStyle
@@ -123,8 +124,11 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
         minHeight: CGFloat = .compactSliderMinHeight,
         enableDragGestureDelayForiOS: Bool = true,
         state: Binding<CompactSliderState> = .constant(.inactive),
+        afterSlide: (() -> Void)? = nil,
         @ViewBuilder valueLabel: () -> ValueLabel
     ) {
+        
+        self.afterSlide = afterSlide
         _maxX = maxX
         _lowerValue = value
         _upperValue = .constant(0)
@@ -228,7 +232,14 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
                 
                 updateState()
             }
+        
+            
             #endif
+            .onTapGesture {
+                
+                
+            }
+   
             .dragGesture(
                 enableDragGestureDelayForiOS: enableDragGestureDelayForiOS,
                 onChanged: {
@@ -243,6 +254,9 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
                     withAnimation {
                         self.height = self.minHeight
                     }
+                    if let afterSlide {
+                        afterSlide()
+                    }
                    
                     isDragging = false
                     updateState()
@@ -250,12 +264,37 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
                     
                 }
             )
+//            .simultaneousGesture(
+//                SimultaneousGesture(TapGesture(), LongPressGesture(minimumDuration: 1)
+//                    .onChanged { _ in
+//                        withAnimation {
+//                            self.height = self.minHeight * 1.4
+////                                      self.isLongPressing = true
+//                        }
+//                    }
+//                    .onEnded { _ in
+//                        withAnimation {
+//                            self.height = self.minHeight
+////                                      self.isLongPressing = false
+//                        }
+//                    })
+//           
+//
+//                )
+//            .onTapGesture {
+//
+//            }
+//            
+        
+        
+        
             .onChange(of: lowerProgress, perform: onLowerProgressChange)
             .onChange(of: upperProgress, perform: onUpperProgressChange)
             .onChange(of: lowerValue, perform: onLowerValueChange)
             .onChange(of: upperValue, perform: onUpperValueChange)
             .animation(nil, value: lowerValue)
             .animation(nil, value: upperValue)
+            
     }
     
     private var contentView: some View {
@@ -310,6 +349,16 @@ public struct CompactSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View 
 // MARK: - Dragging
 
 private extension View {
+    
+    func scalingGesture(
+        enableDragGestureDelayForiOS: Bool,
+        onChanged: @escaping (DragGesture.Value) -> Void,
+        onEnded: @escaping (DragGesture.Value) -> Void
+    ) -> some View {
+        
+        onTapGesture {}
+    }
+    
     @ViewBuilder
     func dragGesture(
         enableDragGestureDelayForiOS: Bool,
@@ -336,6 +385,7 @@ private extension View {
     func delayedGesture(_ enableDragGestureDelayForiOS: Bool) -> some View {
         if enableDragGestureDelayForiOS {
             onTapGesture {}
+            
         } else {
             self
         }
