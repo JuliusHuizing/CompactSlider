@@ -44,6 +44,7 @@ public struct CompactSliderStyleConfiguration {
     public let upperProgress: Double
     /// A view that describes the effect of calling the slider’s action.
     public let label: Label
+    
 }
 
 // MARK: - Environment
