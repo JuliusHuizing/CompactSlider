@@ -399,7 +399,10 @@ private extension CompactSlider {
 //        guard newValue < maxX else { return }
         
         let newProgress = max(0, min(1, newValue / size.width))
-        guard newProgress <= self.maxX else { return }
+        guard newValue / size.width <= self.maxX else {
+            HapticFeedback.vibrate(disabledHapticFeedback)
+            return
+        }
 
         let isProgress2Nearest: Bool
         
